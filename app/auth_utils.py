@@ -23,4 +23,3 @@ def verify_password(plain_text_password: str, stored_hash: str) -> bool:
     # bcrypt extracts the salt automatically from the hash and checks the match safely
     return bcrypt.checkpw(password_bytes, hash_bytes)
 
-                            
