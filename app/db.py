@@ -27,3 +27,27 @@ def get_db_connection():
     if _pool is None:
         init_pool()
     return _pool.get_connection()
+
+def execute_schema_file(filepath):
+    """Safely opens, parses, and executes an SQL blueprint file line-by-line over a pool connection."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    try:
+        with open(filepath, 'r') as f:
+            schema_text = f.read()
+        statements = schema_text.split(';')
+        for statement in statements:
+            clean_statement = statement.strip()
+            if clean_statement:
+                cursor.execute(clean_statement)
+        conn.commit()
+        print("Database architecture successfully constructed.")
+
+    except mysql.connector.Error as err:
+        print(f"Failed to execute schema file: {err}")
+        raise err
+
+    finally:
+        cursor.close()
+        conn.close()
