@@ -4,10 +4,26 @@ from app.config import Config
 
 _pool = None # This variable will store the connection pool decrlaring before to later check status
 
+
+'''
+Because init_pool() runs first (in run.py), the connection pool tries to log into a database that does not exist yet, causing MySQL to throw error 1049: Unknown database.
+Before initializing our global connection pool, we will establish a temporary, raw connection to the MySQL server without specifying a database name. We will use this quick bridge to create glassboard_db. Once the database physically exists, we will spin up the connection pool safely.
+'''
 def init_pool():
     global _pool
     if _pool is None:
         try:
+            #  Connect temporarily to the server without specifying a database
+            print("Verifying database container existence...")
+            temp_conn = mysql.connector.connect(
+                host=Config.MYSQL_HOST,
+                user=Config.MYSQL_USER,
+                password=Config.MYSQL_PASSWORD
+            )
+            temp_cursor = temp_conn.cursor()
+            temp_cursor.execute(f"CREATE DATABASE IF NOT EXISTS {Config.MYSQL_DB};")
+            temp_cursor.close()
+            temp_conn.close()
             _pool = MySQLConnectionPool(
                 pool_name="glassboard_pool",
                 pool_size=Config.MYSQL_POOL_SIZE,  # Pre-allocate (5 default) persistent idle connections in memory
