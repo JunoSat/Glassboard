@@ -24,6 +24,8 @@ def init_pool():
             temp_cursor.execute(f"CREATE DATABASE IF NOT EXISTS {Config.MYSQL_DB};")
             temp_cursor.close()
             temp_conn.close()
+
+            #making the real pool
             _pool = MySQLConnectionPool(
                 pool_name="glassboard_pool",
                 pool_size=Config.MYSQL_POOL_SIZE,  # Pre-allocate (5 default) persistent idle connections in memory
