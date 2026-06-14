@@ -76,3 +76,26 @@ AFTER DELETE ON tasks
 FOR EACH ROW
 INSERT INTO audit_log (target_table, row_id, action_type, old_value, new_value)
 VALUES ('tasks', OLD.id, 'DELETE', CONCAT('Title: ', OLD.title, ' | Status: ', OLD.status), NULL);
+
+DROP TRIGGER IF EXISTS after_handshake_insert;
+CREATE TRIGGER after_handshake_insert
+AFTER INSERT ON handshakes
+FOR EACH ROW
+INSERT INTO audit_log (target_table, row_id, action_type, old_value, new_value)
+VALUES ('handshakes', NEW.id, 'INSERT', NULL, CONCAT('TaskID: ', NEW.task_id, ' | Status: ', NEW.status));
+
+DROP TRIGGER IF EXISTS after_handshake_update;
+CREATE TRIGGER after_handshake_update
+AFTER UPDATE ON handshakes
+FOR EACH ROW
+INSERT INTO audit_log (target_table, row_id, action_type, old_value, new_value)
+VALUES ('handshakes', NEW.id, 'UPDATE',
+        CONCAT('TaskID: ', OLD.task_id, ' | Status: ', OLD.status),
+        CONCAT('TaskID: ', NEW.task_id, ' | Status: ', NEW.status));
+
+DROP TRIGGER IF EXISTS after_handshake_delete;
+CREATE TRIGGER after_handshake_delete
+AFTER DELETE ON handshakes
+FOR EACH ROW
+INSERT INTO audit_log (target_table, row_id, action_type, old_value, new_value)
+VALUES ('handshakes', OLD.id, 'DELETE', CONCAT('TaskID: ', OLD.task_id, ' | Status: ', OLD.status), NULL);
