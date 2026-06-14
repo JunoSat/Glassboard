@@ -3,6 +3,7 @@ from flask import Flask
 from app.db import init_pool, execute_schema_file
 from app.auth import auth_bp
 from app.modules import modules_bp
+from app.tasks import tasks_bp
 
 def create_app():
     """Application Factory pattern to initialize Flask core layers."""
@@ -17,6 +18,7 @@ def create_app():
     # Register our API route blueprints
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
     app.register_blueprint(modules_bp, url_prefix='/api/modules')
+    app.register_blueprint(tasks_bp, url_prefix='/api/tasks')
 
     return app
 
