@@ -1,12 +1,14 @@
 from flask import Blueprint, request, jsonify
 from app.db import get_db_connection
 import mysql.connector
-
+from app.middleware import token_required, roles_allowed
 # Create the Tasks Blueprint
 tasks_bp = Blueprint('tasks', __name__)
 
 @tasks_bp.route('/', methods=['POST'])
-def create_task():
+@token_required                     # Gate 1: Must be logged in with a valid token
+@roles_allowed('admin', 'manager')  # Gate 2: Must be an admin or a manager to write data
+def create_task(current_user):
     """API Endpoint to create an operational task assigned to a specific module."""
     data = request.get_json() or {}
     title = data.get('title')
@@ -42,6 +44,7 @@ def create_task():
         conn.close()
 
 @tasks_bp.route('/', methods=['GET'])
+@token_required                     # Anyone with a valid token can view the tasks list
 def list_tasks():
     """API Endpoint to fetch all active tasks in the system."""
     conn = get_db_connection()
