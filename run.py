@@ -1,21 +1,26 @@
 import os
+from flask import Flask
 from app.db import init_pool, execute_schema_file
+from app.auth import auth_bp
 
 
-def bootstrap_app():
-    """Initializes system resources and verifies database schemas before booting."""
-    print("Bootstrapping Glassboard Application Core...")
+def create_app():
+    """Application Factory pattern to initialize Flask core layers."""
+    app = Flask(__name__)
 
-    # Spin up the thread-safe global connection pool
+    # Initialize the database structures on startup
     init_pool()
-
-    # Locate and execute our physical relational blueprint schema
     base_dir = os.path.dirname(os.path.abspath(__file__))
     schema_path = os.path.join(base_dir, 'app', 'schema.sql')
-
-    print(f"Loading database blueprint from: {schema_path}")
     execute_schema_file(schema_path)
 
+    # Register our API route blueprints
+    app.register_blueprint(auth_bp, url_prefix='/api/auth')
+
+    return app
+
+
 if __name__ == "__main__":
-    bootstrap_app()
-    print("Application core is verified and ready for API routes.")
+    app = create_app()
+    print("Glassboard Server online at http://127.0.0.1:5000")
+    app.run(debug=True, port=5000)
