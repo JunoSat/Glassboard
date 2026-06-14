@@ -41,11 +41,13 @@ create table if not exists audit_log(
 
 create table if not exists handshakes(
     id bigint auto_increment primary key,
+    task_id bigint not null,
     sender_module_id int not null,
     receiver_module_id int not null,
     status enum('PENDING', 'ACTIVE', 'REJECTED') not null default 'PENDING',
     requested_at datetime default CURRENT_TIMESTAMP,
     updated_at datetime default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
+    foreign key (task_id) references tasks(id) on delete cascade,
     foreign key (sender_module_id) references modules(id) on delete cascade,
     foreign key (receiver_module_id) references modules(id) on delete cascade
 ) ENGINE=InnoDB;
