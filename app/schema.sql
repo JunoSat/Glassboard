@@ -51,3 +51,28 @@ create table if not exists handshakes(
     foreign key (sender_module_id) references modules(id) on delete cascade,
     foreign key (receiver_module_id) references modules(id) on delete cascade
 ) ENGINE=InnoDB;
+
+DROP TRIGGER IF EXISTS after_task_insert;
+CREATE TRIGGER after_task_insert
+AFTER INSERT ON tasks
+FOR EACH ROW
+INSERT INTO audit_log (target_table, row_id, action_type, old_value, new_value)
+VALUES ('tasks', NEW.id, 'INSERT', NULL, CONCAT('Title: ', NEW.title, ' | Status: ', NEW.status));
+
+
+DROP TRIGGER IF EXISTS after_task_update;
+CREATE TRIGGER after_task_update
+AFTER UPDATE ON tasks
+FOR EACH ROW
+INSERT INTO audit_log (target_table, row_id, action_type, old_value, new_value)
+VALUES ('tasks', NEW.id, 'UPDATE',
+        CONCAT('Title: ', OLD.title, ' | Status: ', OLD.status),
+        CONCAT('Title: ', NEW.title, ' | Status: ', NEW.status));
+
+
+DROP TRIGGER IF EXISTS after_task_delete;
+CREATE TRIGGER after_task_delete
+AFTER DELETE ON tasks
+FOR EACH ROW
+INSERT INTO audit_log (target_table, row_id, action_type, old_value, new_value)
+VALUES ('tasks', OLD.id, 'DELETE', CONCAT('Title: ', OLD.title, ' | Status: ', OLD.status), NULL);
