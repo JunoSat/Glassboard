@@ -45,7 +45,7 @@ def create_task(current_user):
 
 @tasks_bp.route('/', methods=['GET'])
 @token_required                     # Anyone with a valid token can view the tasks list
-def list_tasks():
+def list_tasks(current_user):
     """API Endpoint to fetch all active tasks in the system."""
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)

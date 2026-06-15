@@ -13,7 +13,7 @@ modules_bp = Blueprint("modules", __name__)
 @modules_bp.route("/", methods=["POST"])
 @token_required          # Rule 1: Must provide a valid JWT passport
 @roles_allowed('admin')  # Rule 2: The role inside that passport MUST be 'admin'
-def create_module(): # <-- The middleware automatically passes current_user here!
+def create_module(current_user): # <-- The middleware automatically passes current_user here!
     """API Endpoint to spin up a new operational department module."""
     data = request.get_json() or {}
     name = data.get('name')
