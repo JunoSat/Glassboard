@@ -5,6 +5,7 @@ from app.auth import auth_bp
 from app.modules import modules_bp
 from app.tasks import tasks_bp
 from app.handshakes import handshakes_bp
+from app.errors import register_error_handlers
 
 def create_app():
     """Application Factory pattern to initialize Flask core layers."""
@@ -22,6 +23,7 @@ def create_app():
     app.register_blueprint(tasks_bp, url_prefix='/api/tasks')
     app.register_blueprint(handshakes_bp, url_prefix='/api/handshakes')
 
+    register_error_handlers(app)
     return app
 
 
