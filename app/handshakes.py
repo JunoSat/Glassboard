@@ -7,7 +7,8 @@ from app.middleware import token_required, roles_allowed
 handshakes_bp = Blueprint('handshakes', __name__)
 
 @handshakes_bp.route('/', methods=['POST'])
-def initiate_handshake():
+@token_required
+def initiate_handshake(current_user):
     """API Endpoint to log a cross-module transition request for a specific task."""
     data = request.get_json() or {}
     task_id = data.get('task_id')
@@ -21,6 +22,9 @@ def initiate_handshake():
 
     if sender_id == receiver_id:
         return jsonify({"error": "A module cannot handshake with itself."}), 400
+
+     # FORCE STATUS AS PENDING. Never trust a client payload.
+    status = 'PENDING'
 
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
@@ -46,7 +50,8 @@ def initiate_handshake():
 
 
 @handshakes_bp.route('/', methods=['GET'])
-def list_handshakes():
+@token_required
+def list_handshakes(current_user):
     """API Endpoint to view all ongoing handshakes with full contextual names."""
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)

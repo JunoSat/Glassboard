@@ -21,6 +21,9 @@ def register_user():
     if not username or not password:
         return jsonify({"error": "Username and password are required fields."}), 400
 
+    # DEFEND PRIVILEGE ESCALATION: Forced lower-tier baseline assignments
+    role = 'member'
+
     password_hash = hash_password(password)
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
