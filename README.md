@@ -485,8 +485,8 @@ All endpoints return JSON. All error responses follow the structure `{ "error": 
 #### Step 1 — Clone or download the project
 
 ```powershell
-git clone https://github.com/your-username/glassboard.git
-cd glassboard
+git clone https://github.com/JunoSat/Glassboard.git
+cd Glassboard
 ```
 
 #### Step 2 — Create and activate a virtual environment
@@ -551,8 +551,8 @@ The database, all tables, and all triggers are created automatically on first bo
 #### Step 1 — Clone the project
 
 ```bash
-git clone https://github.com/your-username/glassboard.git
-cd glassboard
+git clone https://github.com/JunoSat/Glassboard.git
+cd Glassboard
 ```
 
 #### Step 2 — Create and activate a virtual environment
