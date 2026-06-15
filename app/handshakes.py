@@ -2,6 +2,8 @@ from flask import Blueprint, request, jsonify
 from app.db import get_db_connection
 import mysql.connector
 
+from app.middleware import token_required, roles_allowed
+
 handshakes_bp = Blueprint('handshakes', __name__)
 
 @handshakes_bp.route('/', methods=['POST'])
@@ -66,6 +68,62 @@ def list_handshakes():
         cursor.execute(query)
         all_handshakes = cursor.fetchall()
         return jsonify(all_handshakes), 200
+
+    except mysql.connector.Error as err:
+        return jsonify({"error": f"Database failure: {err.msg}"}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@handshakes_bp.route('/<int:handshake_id>/status', methods=['PUT'])
+@token_required
+@roles_allowed('admin', 'manager')  # Only managers/admins can process handshakes
+def update_handshake_status(current_user, handshake_id):
+    """Processes a handshake transition (APPROVE/REJECT) and moves task ownership."""
+    data = request.get_json() or {}
+    action = data.get('action')  # Expected: 'APPROVE' or 'REJECT'
+
+    if action not in ['APPROVE', 'REJECT']:
+        return jsonify({"error": "Invalid action. Must be 'APPROVE' or 'REJECT'."}), 400
+
+    new_status = 'ACTIVE' if action == 'APPROVE' else 'REJECTED'
+
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    try:
+        # 1. Fetch the handshake to find out which task and module it belongs to
+        cursor.execute(
+            "select task_id, receiver_module_id, status from handshakes where id = %s;",
+            (handshake_id,)
+        )
+        handshake = cursor.fetchone()
+
+        if not handshake:
+            return jsonify({"error": "Handshake record not found."}), 404
+
+        if handshake['status'] != 'PENDING':
+            return jsonify({"error": "Conflict: This handshake has already been processed."}), 400
+
+        # 2. Update the Handshake status
+        cursor.execute(
+            "update handshakes set status = %s where id = %s;",
+            (new_status, handshake_id)
+        )
+
+        # 3. State Machine Logic: If approved, cascade task ownership to the receiving module
+        if action == 'APPROVE':
+            cursor.execute(
+                "update tasks set module_id = %s, assigned_to = null where id = %s;",
+                (handshake['receiver_module_id'], handshake['task_id'])
+            )
+
+        conn.commit()
+        return jsonify({
+            "message": f"Handshake {handshake_id} successfully updated to {new_status}.",
+            "action_taken": action
+        }), 200
 
     except mysql.connector.Error as err:
         return jsonify({"error": f"Database failure: {err.msg}"}), 500
